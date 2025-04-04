@@ -35,6 +35,27 @@ class Pedido(models.Model):
         return self.total
 
 
+class DetallePedido(models.Model):
+    id_detalle_pedido = models.AutoField(primary_key=True)
+    id_pedido = models.ForeignKey("Pedido", on_delete=models.CASCADE, related_name="detalles")
+    id_producto = models.ForeignKey("inventory.Producto", on_delete=models.CASCADE)
+    cantidad = models.IntegerField()
+    precio_unitario = models.DecimalField(max_digits=10, decimal_places=2)
+    descripcion = models.CharField(max_length=45, blank=True, null=True)
+
+    class Meta:
+        verbose_name = "Detalle de Pedido"
+        verbose_name_plural = "Detalles de Pedidos"
+        db_table = "detalle_pedido"
+
+    def __str__(self):
+        return f"{self.id_pedido.id_pedido} - {self.id_producto.nombre_producto} (x{self.cantidad})"
+
+    @property
+    def subtotal(self):
+        return self.cantidad * self.precio_unitario
+
+
 class PedidoMesero(models.Model):
     id_pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE, related_name="pedidos_mesero")
     id_mesero = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="pedidos_mesero")

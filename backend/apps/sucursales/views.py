@@ -1,64 +1,63 @@
 from django.shortcuts import render
-
-# Create your views here.
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 from .models import Sucursal, Mesa
-from .serializers import BranchSerializer, TableSerializer
-from apps.users.permissions import IsAdmin, IsAdminOrCashier, IsWaiter
+from .serializers import SucursalSerializer, MesaSerializer
+from apps.users.permissions import IsAdmin, IsAdminOCajero, IsMesero, IsCajero
 
 
-class BranchViewSet(viewsets.ModelViewSet):
+class SucursalViewSet(viewsets.ModelViewSet):
     queryset = Sucursal.objects.all()
-    serializer_class = BranchSerializer
+    serializer_class = SucursalSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ["is_active"]
-    search_fields = ["name", "address"]
-    ordering_fields = ["name", "created_at"]
+    search_fields = ["nombre_sucursal", "direccion"]
+    ordering_fields = ["nombre_sucursal"]
 
     def get_permissions(self):
         if self.action in ["create", "update", "partial_update", "destroy"]:
             permission_classes = [IsAdmin]
         else:
-            permission_classes = [IsAdminOrCashier | IsWaiter]
+            permission_classes = [IsAdminOCajero | IsMesero]
         return [permission() for permission in permission_classes]
 
 
-class TableViewSet(viewsets.ModelViewSet):
+class MesasViewSet(viewsets.ModelViewSet):
     queryset = Mesa.objects.all()
-    serializer_class = TableSerializer
+    serializer_class = MesaSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ["branch", "status", "is_active"]
-    search_fields = ["number"]
-    ordering_fields = ["number", "capacity", "status"]
+    filterset_fields = ["id_sucursal", "estado", "is_active"]
+    search_fields = ["numero"]
+    ordering_fields = ["numero", "estado"]
 
     def get_permissions(self):
         if self.action in ["create", "update", "partial_update", "destroy"]:
             permission_classes = [IsAdmin]
-        elif self.action in ["change_status", "free_table"]:
-            permission_classes = [IsAdminOrCashier | IsWaiter]
+        elif self.action == "free_table":
+            permission_classes = [IsAdminOCajero]  # Solo admin y cajero pueden liberar mesas
+        elif self.action == "change_status":
+            permission_classes = [IsAdminOCajero | IsMesero]  # Ambos pueden cambiar estados
         else:
-            permission_classes = [IsAdminOrCashier | IsWaiter]
+            permission_classes = [IsAdminOCajero | IsMesero]
         return [permission() for permission in permission_classes]
 
     @action(detail=True, methods=["post"])
-    def change_status(self, request, pk=None):
+    def cambiar_estado(self, request, pk=None):
         table = self.get_object()
-        status = request.data.get("status")
+        status = request.data.get("estado")
 
-        if status not in [choice[0] for choice in Table.STATUS_CHOICES]:
+        if status not in [choice[0] for choice in Mesa.STATUS_CHOICES]:
             return Response({"error": "Estado inválido"}, status=400)
 
-        table.status = status
+        table.estado = status
         table.save()
         return Response({"status": "estado de la mesa actualizado"})
 
     @action(detail=True, methods=["post"])
-    def free_table(self, request, pk=None):
+    def liberar_mesa(self, request, pk=None):
         table = self.get_object()
-        table.status = "free"
+        table.status = "libre"
         table.save()
         return Response({"status": "mesa liberada exitosamente"})

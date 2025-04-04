@@ -3,19 +3,6 @@ from apps.sucursales.models import Sucursal
 from apps.users.models import Usuario
 
 
-class Category(models.Model):
-    name = models.CharField(max_length=50)
-    description = models.TextField(blank=True, null=True)
-    is_active = models.BooleanField(default=True)
-
-    class Meta:
-        verbose_name = "Categoría"
-        verbose_name_plural = "Categorías"
-
-    def __str__(self):
-        return self.name
-
-
 class Producto(models.Model):
     id_producto = models.AutoField(primary_key=True)
     nombre_producto = models.CharField(max_length=100)
@@ -31,11 +18,11 @@ class Producto(models.Model):
         db_table = "productos"
 
     def __str__(self):
-        return f"{self.name} - ${self.price}"
+        return f"{self.nombre_producto} - ${self.precio_venta}"
 
 
 class Inventario(models.Model):
-    id_invetario = models.AutoField(primary_key=True)
+    id_inventario = models.AutoField(primary_key=True)
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE, related_name="existencias")
     sucursal = models.ForeignKey(Sucursal, on_delete=models.CASCADE, related_name="inventarios")
     cantidad = models.IntegerField(default=0)
@@ -62,12 +49,12 @@ class TransaccionInventario(models.Model):
         ("transferencia", "Transferencia"),
     ]
 
-    id_transaction = models.AutoField(primary_key=True)
+    id_transaccion = models.AutoField(primary_key=True)
     id_producto = models.ForeignKey(Producto, on_delete=models.CASCADE, related_name="transacciones")
     id_sucursal = models.ForeignKey(Sucursal, on_delete=models.CASCADE, related_name="transacciones")
     cantidad = models.IntegerField()  # Puede ser negativo para salidas
     tipo_transaccion = models.CharField(max_length=13, choices=TRANSACTION_TYPES)
-    transaction_fecha_hora = models.DateTimeField(auto_now_add=True)
+    transaccion_fecha_hora = models.DateTimeField(auto_now_add=True)
     id_usuario = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True)
     comentario = models.TextField(blank=True, null=True)
 

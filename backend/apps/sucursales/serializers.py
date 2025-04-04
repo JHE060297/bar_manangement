@@ -13,7 +13,7 @@ class SucursalSerializer(serializers.ModelSerializer):
         return obj.mesas.count()
 
 
-class MesasSerializer(serializers.ModelSerializer):
+class MesaSerializer(serializers.ModelSerializer):
     nombre_sucursal = serializers.CharField(source="id_sucursal.nombre_sucursal", read_only=True)
 
     class Meta:
