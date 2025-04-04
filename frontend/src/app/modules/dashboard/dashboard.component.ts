@@ -3,6 +3,7 @@ import { AuthService } from '../../core/authentication/auth.service';
 import { Usuario } from '../../core/models/user.model';
 
 @Component({
+    standalone: false,
     selector: 'app-dashboard',
     templateUrl: './dashboard.component.html',
     styleUrls: ['./dashboard.component.scss']

@@ -9,6 +9,7 @@ import { Usuario } from '../../../core/models/user.model';
 import { Router } from '@angular/router';
 
 @Component({
+    standalone: false,
     selector: 'app-users-list',
     templateUrl: './users-list.component.html',
     styleUrls: ['./users-list.component.scss']
@@ -139,6 +140,7 @@ export class UsersListComponent implements OnInit {
 
 // Dialog Component for Confirmation
 @Component({
+    standalone: false,
     selector: 'app-confirm-dialog',
     template: `
     <h2 mat-dialog-title>{{ data.title }}</h2>

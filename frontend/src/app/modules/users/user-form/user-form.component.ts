@@ -9,6 +9,7 @@ import { forkJoin, of } from 'rxjs';
 import { catchError, finalize } from 'rxjs/operators';
 
 @Component({
+    standalone: false,
     selector: 'app-user-form',
     templateUrl: './user-form.component.html',
     styleUrls: ['./user-form.component.scss']
