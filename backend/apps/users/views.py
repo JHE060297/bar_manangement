@@ -7,7 +7,7 @@ from .serializers import UsuarioSerializer
 from .permissions import IsAdmin
 
 
-class UsarioViewSet(viewsets.ModelViewSet):
+class UsuarioViewSet(viewsets.ModelViewSet):
     queryset = Usuario.objects.all()
     serializer_class = UsuarioSerializer
     permission_classes = [IsAdmin]
