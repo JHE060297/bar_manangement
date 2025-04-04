@@ -1,101 +1,91 @@
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from apps.users.models import Usuario
+from apps.sucursales.models import Mesa
 
 
-class Order(models.Model):
+class Pedido(models.Model):
     STATUS_CHOICES = [
-        ("pending", "Pendiente"),
-        ("preparing", "En preparación"),
-        ("ready", "Listo para entregar"),
-        ("delivered", "Entregado"),
-        ("paid", "Pagado"),
-        ("cancelled", "Cancelado"),
+        ("pendiente", "Pendiente"),
+        ("entregado", "Entregado"),
+        ("pagado", "Pagado"),
     ]
 
-    table = models.ForeignKey("sucursales.Table", on_delete=models.CASCADE, related_name="orders")
-    waiter = models.ForeignKey("users.User", on_delete=models.SET_NULL, null=True, related_name="orders_taken")
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="pending")
-    notes = models.TextField(blank=True, null=True)
+    id_pedido = models.AutoField(primary_key=True)
+    id_mesa = models.ForeignKey(Mesa, on_delete=models.CASCADE, related_name="pedidos")
+    estado = models.CharField(max_length=15, choices=STATUS_CHOICES, default="pending")
+    total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
-    # Para el seguimiento de tiempos
-    prepared_at = models.DateTimeField(null=True, blank=True)
-    delivered_at = models.DateTimeField(null=True, blank=True)
-    paid_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         verbose_name = "Pedido"
         verbose_name_plural = "Pedidos"
+        db_table = "pedido"
         ordering = ["-created_at"]
 
     def __str__(self):
-        return f"Pedido {self.id} - Mesa {self.table.number} - {self.get_status_display()}"
+        return f"Pedido {self.id_pedido} - Mesa {self.id_mesa.numero} - {self.get_estado_display()}"
 
-    @property
-    def total(self):
-        return sum(item.subtotal for item in self.items.all())
-
-    @property
-    def branch(self):
-        return self.table.branch
+    def calcular_total(self):
+        """Método para calcular el total del pedido a partir de los ítems"""
+        # Aquí irá la lógica para calcular el total si tienes un modelo ItemPedido
+        # Por ahora, solo retorna el valor actual
+        return self.total
 
 
-class OrderItem(models.Model):
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")
-    product = models.ForeignKey("inventory.Product", on_delete=models.PROTECT)
-    quantity = models.PositiveIntegerField(default=1)
-    price = models.DecimalField(max_digits=10, decimal_places=2)  # Precio al momento de la orden
-    notes = models.CharField(max_length=255, blank=True, null=True)
+class PedidoMesero(models.Model):
+    id_pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE, related_name="pedidos_mesero")
+    id_usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="pedidos_mesero")
 
     class Meta:
-        verbose_name = "Item de Pedido"
-        verbose_name_plural = "Items de Pedido"
+        verbose_name = "Asignación Pedido-Mesero"
+        verbose_name_plural = "Asignaciones Pedido-Mesero"
+        db_table = "pedido_mesero"
+        unique_together = ("id_pedido", "id_mesero")  # Evitar duplicados
 
     def __str__(self):
-        return f"{self.quantity} x {self.product.name}"
-
-    @property
-    def subtotal(self):
-        return self.price * self.quantity
+        return f"Pedido {self.id_pedido.id_pedido} - Mesero {self.id_mesero.nombre}"
 
 
-class Payment(models.Model):
-    PAYMENT_METHODS = [
-        ("cash", "Efectivo"),
-        ("card", "Tarjeta de crédito/débito"),
-        ("digital_wallet", "Billetera digital"),
+class Pago(models.Model):
+    METODOS_PAGO = [
+        ("efectivo", "Efectivo"),
+        ("tarjeta", "Tarjeta de crédito/débito"),
+        ("nequi", "Nequi"),
+        ("daviplata", "Daviplata"),
     ]
 
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="payments")
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
-    payment_method = models.CharField(max_length=15, choices=PAYMENT_METHODS)
-    reference_number = models.CharField(max_length=100, blank=True, null=True)  # Para referencias de transacciones
-    payment_date = models.DateTimeField(auto_now_add=True)
-    processed_by = models.ForeignKey(
-        "users.User", on_delete=models.SET_NULL, null=True, related_name="payments_processed"
-    )
-    notes = models.TextField(blank=True, null=True)
+    id_pago = models.AutoField(primary_key=True)
+    id_pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE, related_name="pagos")
+    id_usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="pagos")
+    monto = models.DecimalField(max_digits=10, decimal_places=2)
+    metodo_pago = models.CharField(max_length=15, choices=METODOS_PAGO)
+    fecha_hora = models.DateTimeField(auto_now_add=True)
+
+    # Campos adicionales que podrías necesitar
+    referencia_pago = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
         verbose_name = "Pago"
         verbose_name_plural = "Pagos"
+        db_table = "pago"
 
     def __str__(self):
-        return f"Pago {self.id} - Pedido {self.order.id} - {self.amount}"
+        return f"Pago {self.id_pago} - Pedido {self.id_pedido.id_pedido} - {self.monto}"
 
 
 # Señales para actualizar el estado de la mesa cuando se crea/actualiza un pedido
-@receiver(post_save, sender=Order)
+@receiver(post_save, sender=Pedido)
 def update_table_status(sender, instance, created, **kwargs):
-    table = instance.table
+    mesa = instance.id_mesa  # Corregido para usar id_mesa
 
     if created:
-        if table.status == "free":
-            table.status = "occupied"
-            table.save()
-    elif instance.status == "paid":
+        if mesa.estado == "libre":
+            mesa.estado = "ocupada"
+            mesa.save()
+    elif instance.estado == "pagado":
         # No liberamos la mesa inmediatamente, esperamos a que el cajero la marque como libre
         pass
 

@@ -1,41 +1,40 @@
 from django.db import models
 
 
-class Branch(models.Model):
-    name = models.CharField(max_length=100)
-    address = models.CharField(max_length=255)
-    phone = models.CharField(max_length=20)
-    email = models.EmailField(blank=True, null=True)
-    is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+class Sucursal(models.Model):
+    id_sucursal = models.AutoField(primary_key=True)
+    nombre_sucursal = models.CharField(max_length=100)
+    direccion = models.CharField(max_length=255)
+    telefono = models.CharField(max_length=20)
 
     class Meta:
         verbose_name = "Sucursal"
         verbose_name_plural = "Sucursales"
+        db_table = "sucursal"
 
     def __str__(self):
-        return self.name
+        return self.nombre_sucursal
 
 
-class Table(models.Model):
-    STATUS_CHOICES = [
-        ("free", "Libre"),
-        ("occupied", "Ocupada"),
-        ("reserved", "Reservada"),
-        ("dirty", "Sucia"),
+class Mesa(models.Model):
+    ESTADO_CHOICES = [
+        ("libre", "Libre"),
+        ("ocupada", "Ocupada"),
+        ("pagado", "Pagado"),
     ]
 
-    branch = models.ForeignKey(Branch, on_delete=models.CASCADE, related_name="tables")
-    number = models.IntegerField()
-    capacity = models.IntegerField()
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="free")
+    id_mesa = models.AutoField(primary_key=True)
+    numero = models.IntegerField()
+    estado = models.CharField(max_length=10, choices=ESTADO_CHOICES, default="libre")
+    id_sucursal = models.ForeignKey(Sucursal, on_delete=models.CASCADE, related_name="mesas")
     is_active = models.BooleanField(default=True)
 
     class Meta:
         verbose_name = "Mesa"
         verbose_name_plural = "Mesas"
-        unique_together = ("branch", "number")
+        db_table = "mesa"
+        unique_together = ("numero", "id_sucursal")
 
     def __str__(self):
-        return f"{self.branch.name} - Mesa {self.number} ({self.get_status_display()})"
+        status = "🟢" if self.is_active else "🔴"
+        return f"{status} {self.id_sucursal.nombre_sucursal} - Mesa {self.numero} ({self.get_estado_display()})"

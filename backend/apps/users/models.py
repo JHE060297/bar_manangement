@@ -25,38 +25,47 @@ class UserManager(BaseUserManager):
         return self.create_user(email, password, **extra_fields)
 
 
-class User(AbstractBaseUser, PermissionsMixin):
-    ROLES = [
-        ("admin", "Administrador"),
-        ("cashier", "Cajero"),
-        ("waiter", "Mesero"),
-    ]
+class Usuario(AbstractBaseUser, PermissionsMixin):
 
+    # Campos de database
+    id_usuario = models.AutoField(primary_key=True)
+    nombre = models.CharField(max_length=100)
+    apellido = models.CharField(max_length=100)
+    usuario = models.CharField(max_length=100, unique=True)
+    contrasena = models.CharField(max_length=255)
+    id_rol = models.ForeignKey("Rol", on_delete=models.CASCADE)
+
+    # Campos requeridos por django
     email = models.EmailField(unique=True)
-    first_name = models.CharField(max_length=30)
-    last_name = models.CharField(max_length=30)
-    role = models.CharField(max_length=10, choices=ROLES)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(auto_now_add=True)
 
-    # Relación con sucursal (muchos usuarios pueden pertenecer a una sucursal)
-    branch = models.ForeignKey("sucursales.Branch", on_delete=models.SET_NULL, null=True, related_name="employees")
-
     objects = UserManager()
 
-    USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ["first_name", "last_name", "role"]
+    USERNAME_FIELD = "usuario"
+    REQUIRED_FIELDS = ["nombre", "apellido", "usuario"]
 
     class Meta:
         verbose_name = "Usuario"
         verbose_name_plural = "Usuarios"
+        db_table = "usuario"
 
     def __str__(self):
-        return f"{self.first_name} {self.last_name} ({self.get_role_display()})"
+        return f"{self.nombre} {self.apellido}"
 
     def get_full_name(self):
-        return f"{self.first_name} {self.last_name}"
+        return f"{self.nombre} {self.apellido}"
 
-    def has_role(self, role):
-        return self.role == role
+
+class Rol(models.Model):
+    id_rol = models.AutoField(primary_key=True)
+    nombre = models.CharField(max_length=50)
+
+    class Meta:
+        verbose_name = "Rol"
+        verbose_name_plural = "Roles"
+        db_table = "rol"
+
+    def __str__(self):
+        return self.nombre
