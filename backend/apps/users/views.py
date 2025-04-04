@@ -5,6 +5,8 @@ from django_filters.rest_framework import DjangoFilterBackend
 from .models import Usuario
 from .serializers import UsuarioSerializer
 from .permissions import IsAdmin
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 
 class UsuarioViewSet(viewsets.ModelViewSet):
@@ -65,3 +67,23 @@ class UsuarioViewSet(viewsets.ModelViewSet):
             return Response({"status": "sucursal cambiada exitosamente"})
         except Sucursal.DoesNotExist:
             return Response({"error": "Sucursal no encontrada"}, status=status.HTTP_404_NOT_FOUND)
+
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    username_field = "usuario"
+
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+
+        # Añadir datos personalizados al token
+        token["nombre"] = user.nombre
+        token["apellido"] = user.apellido
+        token["rol"] = user.id_rol.nombre
+        token["is_admin"] = user.is_admin()
+
+        return token
+
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer

@@ -15,7 +15,8 @@ class SucursalSerializer(serializers.ModelSerializer):
 
 class MesaSerializer(serializers.ModelSerializer):
     nombre_sucursal = serializers.CharField(source="id_sucursal.nombre_sucursal", read_only=True)
+    estado_display = serializers.CharField(source="get_estado_display", read_only=True)
 
     class Meta:
         model = Mesa
-        fields = ["id_mesa", "id_sucursal", "nombre_sucursal", "numero", "estado", "is_active"]
+        fields = ["id_mesa", "numero", "id_sucursal", "nombre_sucursal", "estado", "estado_display", "is_active"]

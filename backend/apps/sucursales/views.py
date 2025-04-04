@@ -24,7 +24,7 @@ class SucursalViewSet(viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
 
 
-class MesasViewSet(viewsets.ModelViewSet):
+class MesaViewSet(viewsets.ModelViewSet):
     queryset = Mesa.objects.all()
     serializer_class = MesaSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -35,9 +35,9 @@ class MesasViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in ["create", "update", "partial_update", "destroy"]:
             permission_classes = [IsAdmin]
-        elif self.action == "free_table":
+        elif self.action == "liberar_mesa":
             permission_classes = [IsAdminOCajero]  # Solo admin y cajero pueden liberar mesas
-        elif self.action == "change_status":
+        elif self.action == "cambiar_estado":
             permission_classes = [IsAdminOCajero | IsMesero]  # Ambos pueden cambiar estados
         else:
             permission_classes = [IsAdminOCajero | IsMesero]
@@ -45,19 +45,19 @@ class MesasViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["post"])
     def cambiar_estado(self, request, pk=None):
-        table = self.get_object()
-        status = request.data.get("estado")
+        mesa = self.get_object()
+        estado = request.data.get("estado")
 
-        if status not in [choice[0] for choice in Mesa.STATUS_CHOICES]:
+        if estado not in [choice[0] for choice in Mesa.ESTADO_CHOICES]:
             return Response({"error": "Estado inválido"}, status=400)
 
-        table.estado = status
-        table.save()
+        mesa.estado = estado
+        mesa.save()
         return Response({"status": "estado de la mesa actualizado"})
 
     @action(detail=True, methods=["post"])
     def liberar_mesa(self, request, pk=None):
-        table = self.get_object()
-        table.status = "libre"
-        table.save()
+        mesa = self.get_object()
+        mesa.estado = "libre"
+        mesa.save()
         return Response({"status": "mesa liberada exitosamente"})
