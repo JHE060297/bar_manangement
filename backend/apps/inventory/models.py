@@ -21,7 +21,7 @@ class Producto(models.Model):
     nombre_producto = models.CharField(max_length=100)
     descripcion = models.TextField(blank=True, null=True)
     precio_compra = models.DecimalField(max_digits=10, decimal_places=2)
-    precio_venta = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="products")
+    precio_venta = models.DecimalField(max_digits=10, decimal_places=2)
     image = models.ImageField(upload_to="products/", blank=True, null=True)
     is_active = models.BooleanField(default=True)
 
@@ -66,7 +66,7 @@ class TransaccionInventario(models.Model):
     id_producto = models.ForeignKey(Producto, on_delete=models.CASCADE, related_name="transacciones")
     id_sucursal = models.ForeignKey(Sucursal, on_delete=models.CASCADE, related_name="transacciones")
     cantidad = models.IntegerField()  # Puede ser negativo para salidas
-    tipo_transaccion = models.CharField(max_length=10, choices=TRANSACTION_TYPES)
+    tipo_transaccion = models.CharField(max_length=13, choices=TRANSACTION_TYPES)
     transaction_fecha_hora = models.DateTimeField(auto_now_add=True)
     id_usuario = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True)
     comentario = models.TextField(blank=True, null=True)

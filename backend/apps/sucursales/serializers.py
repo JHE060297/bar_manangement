@@ -1,12 +1,12 @@
 from rest_framework import serializers
-from .models import Branch, Table
+from .models import Sucursal, Mesa
 
 
 class BranchSerializer(serializers.ModelSerializer):
     tables_count = serializers.SerializerMethodField()
 
     class Meta:
-        model = Branch
+        model = Sucursal
         fields = ["id", "name", "address", "phone", "email", "is_active", "created_at", "updated_at", "tables_count"]
         read_only_fields = ["created_at", "updated_at"]
 
@@ -18,5 +18,5 @@ class TableSerializer(serializers.ModelSerializer):
     branch_name = serializers.CharField(source="branch.name", read_only=True)
 
     class Meta:
-        model = Table
+        model = Mesa
         fields = ["id", "branch", "branch_name", "number", "capacity", "status", "is_active"]

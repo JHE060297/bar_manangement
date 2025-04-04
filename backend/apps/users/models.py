@@ -32,8 +32,8 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
     nombre = models.CharField(max_length=100)
     apellido = models.CharField(max_length=100)
     usuario = models.CharField(max_length=100, unique=True)
-    contrasena = models.CharField(max_length=255)
     id_rol = models.ForeignKey("Rol", on_delete=models.CASCADE)
+    contrasena = models.CharField(max_length=255)
 
     # Campos requeridos por django
     email = models.EmailField(unique=True)
@@ -44,7 +44,7 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
     objects = UserManager()
 
     USERNAME_FIELD = "usuario"
-    REQUIRED_FIELDS = ["nombre", "apellido", "usuario"]
+    REQUIRED_FIELDS = ["nombre", "apellido"]
 
     class Meta:
         verbose_name = "Usuario"

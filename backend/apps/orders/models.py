@@ -37,7 +37,7 @@ class Pedido(models.Model):
 
 class PedidoMesero(models.Model):
     id_pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE, related_name="pedidos_mesero")
-    id_usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="pedidos_mesero")
+    id_mesero = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="pedidos_mesero")
 
     class Meta:
         verbose_name = "Asignación Pedido-Mesero"

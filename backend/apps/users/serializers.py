@@ -1,30 +1,30 @@
 from rest_framework import serializers
-from .models import User
+from .models import Usuario
 
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=False)
-    branch_name = serializers.CharField(source="branch.name", read_only=True)
+    sucursal_name = serializers.CharField(source="sucursales.name", read_only=True)
 
     class Meta:
-        model = User
+        model = Usuario
         fields = [
-            "id",
+            "id_usuario",
+            "nombre",
+            "apellido",
+            "usuario",
+            "id_rol",
+            "contrasena",
             "email",
-            "first_name",
-            "last_name",
-            "role",
             "is_active",
-            "branch",
-            "branch_name",
-            "password",
+            "is_staff",
             "date_joined",
         ]
         read_only_fields = ["date_joined"]
 
     def create(self, validated_data):
         password = validated_data.pop("password")
-        user = User(**validated_data)
+        user = Usuario(**validated_data)
         user.set_password(password)
         user.save()
         return user

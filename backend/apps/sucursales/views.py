@@ -6,13 +6,13 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
-from .models import Branch, Table
+from .models import Sucursal, Mesa
 from .serializers import BranchSerializer, TableSerializer
 from apps.users.permissions import IsAdmin, IsAdminOrCashier, IsWaiter
 
 
 class BranchViewSet(viewsets.ModelViewSet):
-    queryset = Branch.objects.all()
+    queryset = Sucursal.objects.all()
     serializer_class = BranchSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ["is_active"]
@@ -28,7 +28,7 @@ class BranchViewSet(viewsets.ModelViewSet):
 
 
 class TableViewSet(viewsets.ModelViewSet):
-    queryset = Table.objects.all()
+    queryset = Mesa.objects.all()
     serializer_class = TableSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ["branch", "status", "is_active"]

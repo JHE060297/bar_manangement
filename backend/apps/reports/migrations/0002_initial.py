@@ -10,22 +10,16 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ("inventory", "0001_initial"),
+        ("reports", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name="transaccioninventario",
-            name="id_usuario",
+            model_name="reporte",
+            name="usuario",
             field=models.ForeignKey(
-                null=True,
-                on_delete=django.db.models.deletion.SET_NULL,
-                to=settings.AUTH_USER_MODEL,
+                on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL
             ),
-        ),
-        migrations.AlterUniqueTogether(
-            name="inventario",
-            unique_together={("sucursal", "producto")},
         ),
     ]
