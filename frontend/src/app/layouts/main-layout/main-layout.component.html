@@ -1,0 +1,63 @@
+<div class="app-container" [class.is-mobile]="false">
+    <!-- Barra superior -->
+    <mat-toolbar color="primary" class="app-toolbar">
+        <button mat-icon-button (click)="toggleSidenav()">
+            <mat-icon>menu</mat-icon>
+        </button>
+        <h1 class="app-name">Gestión de Restaurantes</h1>
+        <span class="spacer"></span>
+
+        <ng-container *ngIf="currentUser$ | async as currentUser">
+            <button mat-button [matMenuTriggerFor]="userMenu" class="user-menu-button">
+                <mat-icon>account_circle</mat-icon>
+                <span class="username">{{ currentUser.nombre }} {{ currentUser.apellido }}</span>
+                <mat-icon>arrow_drop_down</mat-icon>
+            </button>
+
+            <mat-menu #userMenu="matMenu">
+                <div class="user-info-box">
+                    <div class="user-info">
+                        <mat-icon>account_circle</mat-icon>
+                        <div class="user-details">
+                            <div class="user-name">{{ currentUser.nombre }} {{ currentUser.apellido }}</div>
+                            <div class="user-role">{{ currentUser.rol_nombre || 'Usuario' }}</div>
+                        </div>
+                    </div>
+                </div>
+                <mat-divider></mat-divider>
+                <button mat-menu-item routerLink="/profile">
+                    <mat-icon>person</mat-icon>
+                    <span>Mi Perfil</span>
+                </button>
+                <button mat-menu-item (click)="logout()">
+                    <mat-icon>exit_to_app</mat-icon>
+                    <span>Cerrar Sesión</span>
+                </button>
+            </mat-menu>
+        </ng-container>
+    </mat-toolbar>
+
+    <!-- Contenedor del sidenav y contenido principal -->
+    <mat-sidenav-container class="sidenav-container">
+        <!-- Menú lateral -->
+        <mat-sidenav #sidenav [mode]="'side'" [opened]="isSidenavOpen" class="app-sidenav" [fixedInViewport]="false">
+
+            <mat-nav-list>
+                <ng-container *ngFor="let option of menuOptions">
+                    <a mat-list-item [routerLink]="option.route" routerLinkActive="active-link"
+                        *ngIf="hasRoleForOption(option)">
+                        <mat-icon matListItemIcon>{{ option.icon }}</mat-icon>
+                        <span matListItemTitle>{{ option.name }}</span>
+                    </a>
+                </ng-container>
+            </mat-nav-list>
+        </mat-sidenav>
+
+        <!-- Contenido principal -->
+        <mat-sidenav-content class="main-content">
+            <div class="content-wrapper">
+                <router-outlet></router-outlet>
+            </div>
+        </mat-sidenav-content>
+    </mat-sidenav-container>
+</div>
