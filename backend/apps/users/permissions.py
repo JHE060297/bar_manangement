@@ -3,19 +3,19 @@ from rest_framework import permissions
 
 class IsAdmin(permissions.BasePermission):
     def has_permission(self, request, view):
-        return request.user.is_authenticated and request.user.role == "admin"
+        return request.user.is_authenticated and request.user.is_admin()
 
 
-class IsCashier(permissions.BasePermission):
+class IsCajero(permissions.BasePermission):
     def has_permission(self, request, view):
-        return request.user.is_authenticated and request.user.role == "cashier"
+        return request.user.is_authenticated and request.user.is_cajero()
 
 
-class IsWaiter(permissions.BasePermission):
+class IsMesero(permissions.BasePermission):
     def has_permission(self, request, view):
-        return request.user.is_authenticated and request.user.role == "waiter"
+        return request.user.is_authenticated and request.user.is_mesero()
 
 
-class IsAdminOrCashier(permissions.BasePermission):
+class IsAdminOCajero(permissions.BasePermission):
     def has_permission(self, request, view):
-        return request.user.is_authenticated and request.user.role in ["admin", "cashier"]
+        return request.user.is_authenticated and (request.user.is_admin() or request.user.is_cajero())

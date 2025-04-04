@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from apps.sucursales.models import Sucursal
 
 
 class UserManager(BaseUserManager):
@@ -32,8 +33,9 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
     nombre = models.CharField(max_length=100)
     apellido = models.CharField(max_length=100)
     usuario = models.CharField(max_length=100, unique=True)
-    id_rol = models.ForeignKey("Rol", on_delete=models.CASCADE)
     contrasena = models.CharField(max_length=255)
+    id_rol = models.ForeignKey("Rol", on_delete=models.CASCADE)
+    id_sucursal = models.ForeignKey(Sucursal, on_delete=models.CASCADE)
 
     # Campos requeridos por django
     email = models.EmailField(unique=True)
@@ -56,6 +58,15 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
 
     def get_full_name(self):
         return f"{self.nombre} {self.apellido}"
+
+    def is_admin(self):
+        return self.id_rol.nombre == "admin"
+
+    def is_cajero(self):
+        return self.id_rol.nombre == "cajero"
+
+    def is_mesero(self):
+        return self.id_rol.nombre == "mesero"
 
 
 class Rol(models.Model):
